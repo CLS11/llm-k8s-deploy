@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Beep</title>
+  <link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Kalam:wght@300;400;700&family=Space+Mono&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      background: #fef6ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Kalam', cursive;
+      overflow: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(circle at 15% 25%, #ffe8f8 0%, transparent 38%),
+        radial-gradient(circle at 85% 70%, #e8eaff 0%, transparent 38%),
+        radial-gradient(circle at 50% 95%, #fef3c0 0%, transparent 30%);
+      pointer-events: none;
+    }
+
+    .floatie {
+      position: fixed;
+      pointer-events: none;
+      font-family: 'Architects Daughter', cursive;
+      opacity: 0.28;
+      user-select: none;
+      animation: drift ease-in-out infinite;
+    }
+
+    @keyframes drift {
+      0%,100% { transform: translateY(0) rotate(var(--r0)); }
+      50%      { transform: translateY(-12px) rotate(var(--r1)); }
+    }
+
+    .window {
+      position: relative;
+      width: 400px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 2;
+    }
+
+    .beep-wrap {
+      margin-bottom: -22px;
+      position: relative;
+      z-index: 10;
+      animation: bob 3s ease-in-out infinite;
+    }
+
+    @keyframes bob {
+      0%,100% { transform: translateY(0) rotate(-2deg); }
+      50%      { transform: translateY(-10px) rotate(2deg); }
+    }
+
+    .think-cloud {
+      position: absolute;
+      top: -38px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      border: 2px solid #d8b4fe;
+      border-radius: 16px;
+      padding: 5px 14px;
+      font-size: 0.65rem;
+      white-space: nowrap;
+      display: none;
+      font-family: 'Space Mono', monospace;
+      color: #9333ea;
+    }
+
+    .think-cloud::after {
+      content: '';
+      position: absolute;
+      bottom: -11px;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: #d8b4fe;
+    }
+
+    .think-cloud.on { display: block; }
+
+    .card {
+      width: 100%;
+      background: white;
+      border-radius: 28px;
+      border: 2.5px solid #e9d5ff;
+      box-shadow:
+        0 0 0 6px #fdf4ff,
+        0 0 0 8px #e9d5ff,
+        6px 10px 30px rgba(167,139,250,0.15);
+      overflow: hidden;
+    }
+
+    .card-header {
+      background: linear-gradient(160deg, #ddd6fe 0%, #f5d0fe 100%);
+      padding: 20px 22px 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card-header::after {
+      content: '';
+      position: absolute;
+      bottom: -30px; right: -30px;
+      width: 90px; height: 90px;
+      background: rgba(255,255,255,0.18);
+      border-radius: 50%;
+    }
+
+    .header-name {
+      font-family: 'Architects Daughter', cursive;
+      font-size: 1.25rem;
+      color: #5b21b6;
+    }
+
+    .header-sub {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.58rem;
+      color: #7c3aed;
+      opacity: 0.8;
+      margin-top: 3px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .alive-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: #4ade80;
+      animation: dp 2s ease-in-out infinite;
+    }
+
+    @keyframes dp {
+      0%,100% { opacity: 1; }
+      50%      { opacity: 0.25; }
+    }
+
+    #chat-box {
+      height: 300px;
+      overflow-y: auto;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 13px;
+      scroll-behavior: smooth;
+    }
+
+    #chat-box::-webkit-scrollbar { width: 3px; }
+    #chat-box::-webkit-scrollbar-thumb { background: #e9d5ff; border-radius: 10px; }
+
+    .row {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+      animation: popUp 0.35s cubic-bezier(0.175,0.885,0.32,1.275) both;
+    }
+
+    @keyframes popUp {
+      from { opacity: 0; transform: scale(0.82) translateY(12px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .row.you { flex-direction: row-reverse; }
+
+    .av {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.55rem;
+      font-family: 'Architects Daughter', cursive;
+    }
+
+    .av.b { background: #f3e8ff; }
+    .av.y { background: #fce7f3; color: #be185d; }
+
+    .bub {
+      max-width: 230px;
+      padding: 10px 14px;
+      font-size: 0.88rem;
+      line-height: 1.6;
+    }
+
+    .bub.b {
+      background: #f5f3ff;
+      border: 2px solid #e9d5ff;
+      border-radius: 4px 18px 18px 18px;
+      color: #2e1065;
+    }
+
+    .bub.y {
+      background: linear-gradient(135deg, #f0abfc, #c084fc);
+      border-radius: 18px 4px 18px 18px;
+      color: white;
+    }
+
+    .typing-row { display: flex; gap: 8px; align-items: flex-end; }
+    .typing-bub {
+      background: #f5f3ff;
+      border: 2px solid #e9d5ff;
+      border-radius: 4px 18px 18px 18px;
+      padding: 12px 16px;
+      display: flex; gap: 4px; align-items: center;
+    }
+    .td { width: 6px; height: 6px; border-radius: 50%; background: #c084fc; animation: tb 1s ease-in-out infinite; }
+    .td:nth-child(2) { animation-delay: 0.15s; }
+    .td:nth-child(3) { animation-delay: 0.3s; }
+    @keyframes tb {
+      0%,60%,100% { transform: translateY(0); opacity: 0.3; }
+      30%          { transform: translateY(-6px); opacity: 1; }
+    }
+
+    .quicks {
+      padding: 10px 18px 14px;
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+      border-top: 2px solid #f5f3ff;
+    }
+
+    .qb {
+      background: #fdf4ff;
+      border: 2px solid #e9d5ff;
+      border-radius: 20px;
+      padding: 5px 13px;
+      font-family: 'Architects Daughter', cursive;
+      font-size: 0.67rem;
+      color: #7c3aed;
+      cursor: pointer;
+      transition: all 0.18s cubic-bezier(0.175,0.885,0.32,1.275);
+    }
+
+    .qb:hover {
+      background: #7c3aed;
+      border-color: #7c3aed;
+      color: white;
+      transform: scale(1.08) rotate(-1.5deg);
+    }
+
+    .input-zone {
+      padding: 10px 14px 12px;
+      border-top: 2px solid #f5f3ff;
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+    }
+
+    #msg {
+      flex: 1;
+      background: #fdf4ff;
+      border: 2px solid #e9d5ff;
+      border-radius: 18px;
+      padding: 10px 15px;
+      font-family: 'Kalam', cursive;
+      font-size: 0.88rem;
+      color: #2e1065;
+      outline: none;
+      resize: none;
+      max-height: 80px;
+      line-height: 1.45;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    #msg::placeholder { color: #c4b5fd; }
+    #msg:focus { border-color: #a78bfa; box-shadow: 0 0 0 4px rgba(167,139,250,0.12); }
+
+    #send {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #c084fc, #818cf8);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 4px 0 #7c3aed;
+      transition: all 0.15s;
+    }
+
+    #send:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #7c3aed; }
+    #send:active { transform: translateY(2px); box-shadow: 0 2px 0 #7c3aed; }
+    #send:disabled { background: #e9d5ff; box-shadow: 0 4px 0 #d8b4fe; cursor: not-allowed; }
+    #send svg { width: 15px; height: 15px; fill: white; }
+
+    .hint {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.5rem;
+      color: #c4b5fd;
+      text-align: center;
+      padding: 0 14px 10px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="window">
+
+  <div class="beep-wrap">
+    <div class="think-cloud" id="think">thinking hard...</div>
+    <svg width="92" height="92" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="40" cy="77" rx="18" ry="4" fill="#e9d5ff" opacity="0.45"/>
+      <rect x="27" y="62" width="9" height="12" rx="4.5" fill="#c084fc"/>
+      <rect x="44" y="62" width="9" height="12" rx="4.5" fill="#c084fc"/>
+      <rect x="16" y="25" width="48" height="40" rx="14" fill="#ddd6fe"/>
+      <rect x="7" y="34" width="11" height="16" rx="5.5" fill="#c084fc"/>
+      <rect x="62" y="34" width="11" height="16" rx="5.5" fill="#c084fc"/>
+      <rect x="9" y="38" width="6" height="8" rx="3" fill="#e9d5ff" opacity="0.6"/>
+      <rect x="65" y="38" width="6" height="8" rx="3" fill="#e9d5ff" opacity="0.6"/>
+      <rect x="37" y="11" width="6" height="16" rx="3" fill="#a78bfa"/>
+      <circle cx="40" cy="9" r="6" fill="#f0abfc"/>
+      <circle cx="40" cy="9" r="3" fill="#e879f9"/>
+      <rect x="21" y="29" width="38" height="30" rx="10" fill="white" opacity="0.5"/>
+      <rect x="25" y="35" width="12" height="10" rx="5" fill="#7c3aed"/>
+      <rect x="43" y="35" width="12" height="10" rx="5" fill="#7c3aed"/>
+      <circle cx="29" cy="37" r="3.2" fill="white"/>
+      <circle cx="47" cy="37" r="3.2" fill="white"/>
+      <circle cx="33" cy="39" r="1.4" fill="white" opacity="0.7"/>
+      <circle cx="51" cy="39" r="1.4" fill="white" opacity="0.7"/>
+      <path d="M 28 53 Q 40 61 52 53" stroke="#9333ea" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <ellipse cx="23" cy="51" rx="5" ry="4" fill="#f9a8d4" opacity="0.65"/>
+      <ellipse cx="57" cy="51" rx="5" ry="4" fill="#f9a8d4" opacity="0.65"/>
+      <path d="M 37 28 Q 40 25 43 28 Q 46 31 40 36 Q 34 31 37 28 Z" fill="#f9a8d4" opacity="0.45"/>
+    </svg>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="header-name">Beep</div>
+      <div class="header-sub">
+        <div class="alive-dot"></div>
+        your tiny kubernetes AI pal
+      </div>
+    </div>
+
+    <div id="chat-box">
+      <div class="row">
+        <div class="av b">
+          <svg width="16" height="16" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+            <rect x="16" y="25" width="48" height="40" rx="14" fill="#ddd6fe"/>
+            <rect x="25" y="35" width="12" height="10" rx="5" fill="#7c3aed"/>
+            <rect x="43" y="35" width="12" height="10" rx="5" fill="#7c3aed"/>
+            <circle cx="29" cy="37" r="3" fill="white"/>
+            <circle cx="47" cy="37" r="3" fill="white"/>
+            <path d="M 28 53 Q 40 61 52 53" stroke="#9333ea" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="bub b">hi there! i am Beep, a tiny AI living right inside your Kubernetes cluster. no cloud needed! just ask me anything</div>
+      </div>
+    </div>
+
+    <div class="quicks">
+      <button class="qb" onclick="ask('which model are you?')">which model are you?</button>
+      <button class="qb" onclick="ask('what is your knowledge cutoff?')">knowledge cutoff?</button>
+      <button class="qb" onclick="ask('what is kubernetes?')">what is kubernetes?</button>
+      <button class="qb" onclick="ask('why run AI locally?')">why local AI?</button>
+    </div>
+
+    <div class="input-zone">
+      <textarea id="msg" rows="1" placeholder="say hi to Beep..."></textarea>
+      <button id="send" onclick="go()">
+        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
+    </div>
+    <div class="hint">enter to send &nbsp;&nbsp; shift+enter for new line</div>
+  </div>
+
+</div>
+
+<script>
+  const floaties=[
+    {t:'*',c:'#f0abfc'},{t:'o',c:'#c084fc'},{t:'+',c:'#f9a8d4'},
+    {t:'*',c:'#818cf8'},{t:'o',c:'#fde68a'},{t:'+',c:'#86efac'},
+    {t:'*',c:'#c084fc'},{t:'o',c:'#f0abfc'},{t:'+',c:'#818cf8'},
+    {t:'*',c:'#f9a8d4'},{t:'o',c:'#86efac'},{t:'+',c:'#fde68a'},
+  ];
+
+  floaties.forEach(f=>{
+    const el=document.createElement('div');
+    el.className='floatie';
+    const r0=(Math.random()*24-12).toFixed(1)+'deg';
+    const r1=(Math.random()*24-12).toFixed(1)+'deg';
+    el.style.cssText=`top:${4+Math.random()*88}vh;left:${2+Math.random()*90}vw;color:${f.c};font-size:${0.7+Math.random()*1}rem;--r0:${r0};--r1:${r1};animation-duration:${3+Math.random()*5}s;animation-delay:${Math.random()*5}s;`;
+    el.textContent=f.t;
+    document.body.appendChild(el);
+  });
+
+  const OLLAMA='http://localhost:11434';
+  const MODEL='tinyllama';
+  const box=document.getElementById('chat-box');
+  const think=document.getElementById('think');
+
+  const miniB=`<div class="av b"><svg width="16" height="16" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><rect x="16" y="25" width="48" height="40" rx="14" fill="#ddd6fe"/><rect x="25" y="35" width="12" height="10" rx="5" fill="#7c3aed"/><rect x="43" y="35" width="12" height="10" rx="5" fill="#7c3aed"/><circle cx="29" cy="37" r="3" fill="white"/><circle cx="47" cy="37" r="3" fill="white"/><path d="M 28 53 Q 40 61 52 53" stroke="#9333ea" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg></div>`;
+
+  function ask(q){document.getElementById('msg').value=q;go();}
+
+  function addMsg(text,role){
+    const row=document.createElement('div');
+    row.className=`row ${role==='you'?'you':''}`;
+    if(role==='beep'){
+      row.innerHTML=`${miniB}<div class="bub b">${text}</div>`;
+    } else {
+      row.innerHTML=`<div class="bub y">${text}</div><div class="av y">you</div>`;
+    }
+    box.appendChild(row);
+    box.scrollTop=box.scrollHeight;
+  }
+
+  function addTyping(){
+    const row=document.createElement('div');
+    row.className='typing-row';row.id='typing';
+    row.innerHTML=`${miniB}<div class="typing-bub"><div class="td"></div><div class="td"></div><div class="td"></div></div>`;
+    box.appendChild(row);box.scrollTop=box.scrollHeight;
+  }
+
+  async function go(){
+    const inp=document.getElementById('msg');
+    const btn=document.getElementById('send');
+    const text=inp.value.trim();
+    if(!text)return;
+    addMsg(text,'you');
+    inp.value='';inp.style.height='auto';btn.disabled=true;
+    addTyping();think.classList.add('on');
+    try{
+      const res=await fetch(`${OLLAMA}/api/generate`,{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({model:MODEL,prompt:text,stream:false})
+      });
+      const d=await res.json();
+      document.getElementById('typing')?.remove();
+      think.classList.remove('on');
+      addMsg(d.response,'beep');
+    }catch{
+      document.getElementById('typing')?.remove();
+      think.classList.remove('on');
+      addMsg('oops! make sure ollama is running on port 11434 and try again!','beep');
+    }
+    btn.disabled=false;inp.focus();
+  }
+
+  const ta=document.getElementById('msg');
+  ta.addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px';});
+  ta.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();go();}});
+</script>
+</body>
+</html>
