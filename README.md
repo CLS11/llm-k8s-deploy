@@ -1,4 +1,4 @@
-# 🚀 Deploy Open Source LLM on Kubernetes
+# Deploy Open Source LLM on Kubernetes
 
 A complete guide to deploying an open source LLM (Ollama + Llama 3.2) on Kubernetes with Grafana monitoring and a chatbot UI.
 
